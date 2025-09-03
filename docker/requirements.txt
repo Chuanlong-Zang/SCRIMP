@@ -1,0 +1,12 @@
+Cython
+gym
+imageio
+ipdb
+matplotlib
+networkx
+numpy
+ray
+setproctitle
+tensorflow
+torch>=2.0
+wandb

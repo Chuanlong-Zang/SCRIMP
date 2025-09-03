@@ -1,0 +1,18 @@
+FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
+
+ADD requirements.txt /tmp/
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# quiet conda + no prompts
+RUN conda config --system --set always_yes true \
+ && conda config --system --set changeps1 false
+
+RUN conda create -q -n scrimp python=3.8 \
+ && conda run -n scrimp python -V \
+ && conda run -n scrimp pip install --no-cache-dir -r /tmp/requirements.txt \
+ && conda clean -afy
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+ENTRYPOINT ["/bin/bash", "-c", "source /opt/conda/etc/profile.d/conda.sh && conda activate scrimp && exec \"$@\"", "--"]
