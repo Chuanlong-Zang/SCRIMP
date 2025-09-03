@@ -3,7 +3,7 @@ import random
 import imageio
 import numpy as np
 import torch
-import wandb
+# import wandb
 
 from alg_parameters import *
 
@@ -81,64 +81,64 @@ def write_to_tensorboard(global_summary, step, performance_dict=None, mb_loss=No
     global_summary.flush()
 
 
-def write_to_wandb(step, performance_dict=None, mb_loss=None, imitation_loss=None, evaluate=True, greedy=True):
-    """record performance using wandb"""
-    if imitation_loss is not None:
-        wandb.log({'Loss/Imitation_loss': imitation_loss[0]}, step=step)
-        wandb.log({'Grad/Imitation_grad': imitation_loss[1]}, step=step)
-        return
-    if evaluate:
-        if greedy:
-            wandb.log({'Perf_greedy_eval/Reward': performance_dict['per_r']}, step=step)
-            wandb.log({'Perf_greedy_eval/In_Reward': performance_dict['per_in_r']}, step=step)
-            wandb.log({'Perf_greedy_eval/Ex_Reward': performance_dict['per_ex_r']}, step=step)
-            wandb.log({'Perf_greedy_eval/Valid_rate': performance_dict['per_valid_rate']}, step=step)
-            wandb.log({'Perf_greedy_eval/Episode_length': performance_dict['per_episode_len']}, step=step)
-            wandb.log({'Perf_greedy_eval/Num_block': performance_dict['per_block']}, step=step)
-            wandb.log({'Perf_greedy_eval/Num_leave_goal': performance_dict['per_leave_goal']}, step=step)
-            wandb.log({'Perf_greedy_eval/Final_goals': performance_dict['per_final_goals']}, step=step)
-            wandb.log({'Perf_greedy_eval/Half_goals': performance_dict['per_half_goals']}, step=step)
-            wandb.log({'Perf_greedy_eval/Block_accuracy': performance_dict['per_block_acc']}, step=step)
-            wandb.log({'Perf_greedy_eval/Max_goals': performance_dict['per_max_goals']}, step=step)
-            wandb.log({'Perf_greedy_eval/Num_collide': performance_dict['per_num_collide']}, step=step)
-
-        else:
-            wandb.log({'Perf_random_eval/Reward': performance_dict['per_r']}, step=step)
-            wandb.log({'Perf_random_eval/In_Reward': performance_dict['per_in_r']}, step=step)
-            wandb.log({'Perf_random_eval/Ex_Reward': performance_dict['per_ex_r']}, step=step)
-            wandb.log({'Perf_random_eval/Valid_rate': performance_dict['per_valid_rate']}, step=step)
-            wandb.log({'Perf_random_eval/Episode_length': performance_dict['per_episode_len']}, step=step)
-            wandb.log({'Perf_random_eval/Num_block': performance_dict['per_block']}, step=step)
-            wandb.log({'Perf_random_eval/Num_leave_goal': performance_dict['per_leave_goal']}, step=step)
-            wandb.log({'Perf_random_eval/Final_goals': performance_dict['per_final_goals']}, step=step)
-            wandb.log({'Perf_random_eval/Half_goals': performance_dict['per_half_goals']}, step=step)
-            wandb.log({'Perf_random_eval/Block_accuracy': performance_dict['per_block_acc']}, step=step)
-            wandb.log({'Perf_random_eval/Max_goals': performance_dict['per_max_goals']}, step=step)
-            wandb.log({'Perf_random_eval/Num_collide': performance_dict['per_num_collide']}, step=step)
-
-    else:
-        loss_vals = np.nanmean(mb_loss, axis=0)
-        wandb.log({'Perf/Reward': performance_dict['per_r']}, step=step)
-        wandb.log({'Perf/In_Reward': performance_dict['per_in_r']}, step=step)
-        wandb.log({'Perf/Ex_Reward': performance_dict['per_ex_r']}, step=step)
-        wandb.log({'Perf/Valid_rate': performance_dict['per_valid_rate']}, step=step)
-        wandb.log({'Perf/Episode_length': performance_dict['per_episode_len']}, step=step)
-        wandb.log({'Perf/Num_block': performance_dict['per_block']}, step=step)
-        wandb.log({'Perf/Num_leave_goal': performance_dict['per_leave_goal']}, step=step)
-        wandb.log({'Perf/Final_goals': performance_dict['per_final_goals']}, step=step)
-        wandb.log({'Perf/Half_goals': performance_dict['per_half_goals']}, step=step)
-        wandb.log({'Perf/Block_accuracy': performance_dict['per_block_acc']}, step=step)
-        wandb.log({'Perf/Max_goals': performance_dict['per_max_goals']}, step=step)
-        wandb.log({'Perf/Num_collide': performance_dict['per_num_collide']},
-                  step=step)
-        wandb.log({'Perf/Rewarded_rate': performance_dict['rewarded_rate']},
-                  step=step)
-
-        for (val, name) in zip(loss_vals, RecordingParameters.LOSS_NAME):
-            if name == 'grad_norm':
-                wandb.log({'Grad/' + name: val}, step=step)
-            else:
-                wandb.log({'Loss/' + name: val}, step=step)
+# def write_to_wandb(step, performance_dict=None, mb_loss=None, imitation_loss=None, evaluate=True, greedy=True):
+#     """record performance using wandb"""
+#     if imitation_loss is not None:
+#         wandb.log({'Loss/Imitation_loss': imitation_loss[0]}, step=step)
+#         wandb.log({'Grad/Imitation_grad': imitation_loss[1]}, step=step)
+#         return
+#     if evaluate:
+#         if greedy:
+#             wandb.log({'Perf_greedy_eval/Reward': performance_dict['per_r']}, step=step)
+#             wandb.log({'Perf_greedy_eval/In_Reward': performance_dict['per_in_r']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Ex_Reward': performance_dict['per_ex_r']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Valid_rate': performance_dict['per_valid_rate']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Episode_length': performance_dict['per_episode_len']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Num_block': performance_dict['per_block']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Num_leave_goal': performance_dict['per_leave_goal']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Final_goals': performance_dict['per_final_goals']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Half_goals': performance_dict['per_half_goals']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Block_accuracy': performance_dict['per_block_acc']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Max_goals': performance_dict['per_max_goals']}, step=step)
+#             wandb.log({'Perf_greedy_eval/Num_collide': performance_dict['per_num_collide']}, step=step)
+#
+#         else:
+#             wandb.log({'Perf_random_eval/Reward': performance_dict['per_r']}, step=step)
+#             wandb.log({'Perf_random_eval/In_Reward': performance_dict['per_in_r']}, step=step)
+#             wandb.log({'Perf_random_eval/Ex_Reward': performance_dict['per_ex_r']}, step=step)
+#             wandb.log({'Perf_random_eval/Valid_rate': performance_dict['per_valid_rate']}, step=step)
+#             wandb.log({'Perf_random_eval/Episode_length': performance_dict['per_episode_len']}, step=step)
+#             wandb.log({'Perf_random_eval/Num_block': performance_dict['per_block']}, step=step)
+#             wandb.log({'Perf_random_eval/Num_leave_goal': performance_dict['per_leave_goal']}, step=step)
+#             wandb.log({'Perf_random_eval/Final_goals': performance_dict['per_final_goals']}, step=step)
+#             wandb.log({'Perf_random_eval/Half_goals': performance_dict['per_half_goals']}, step=step)
+#             wandb.log({'Perf_random_eval/Block_accuracy': performance_dict['per_block_acc']}, step=step)
+#             wandb.log({'Perf_random_eval/Max_goals': performance_dict['per_max_goals']}, step=step)
+#             wandb.log({'Perf_random_eval/Num_collide': performance_dict['per_num_collide']}, step=step)
+#
+#     else:
+#         loss_vals = np.nanmean(mb_loss, axis=0)
+#         wandb.log({'Perf/Reward': performance_dict['per_r']}, step=step)
+#         wandb.log({'Perf/In_Reward': performance_dict['per_in_r']}, step=step)
+#         wandb.log({'Perf/Ex_Reward': performance_dict['per_ex_r']}, step=step)
+#         wandb.log({'Perf/Valid_rate': performance_dict['per_valid_rate']}, step=step)
+#         wandb.log({'Perf/Episode_length': performance_dict['per_episode_len']}, step=step)
+#         wandb.log({'Perf/Num_block': performance_dict['per_block']}, step=step)
+#         wandb.log({'Perf/Num_leave_goal': performance_dict['per_leave_goal']}, step=step)
+#         wandb.log({'Perf/Final_goals': performance_dict['per_final_goals']}, step=step)
+#         wandb.log({'Perf/Half_goals': performance_dict['per_half_goals']}, step=step)
+#         wandb.log({'Perf/Block_accuracy': performance_dict['per_block_acc']}, step=step)
+#         wandb.log({'Perf/Max_goals': performance_dict['per_max_goals']}, step=step)
+#         wandb.log({'Perf/Num_collide': performance_dict['per_num_collide']},
+#                   step=step)
+#         wandb.log({'Perf/Rewarded_rate': performance_dict['rewarded_rate']},
+#                   step=step)
+#
+#         for (val, name) in zip(loss_vals, RecordingParameters.LOSS_NAME):
+#             if name == 'grad_norm':
+#                 wandb.log({'Grad/' + name: val}, step=step)
+#             else:
+#                 wandb.log({'Loss/' + name: val}, step=step)
 
 
 def make_gif(images, file_name):

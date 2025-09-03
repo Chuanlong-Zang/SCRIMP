@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import torch
-import wandb
 
 from alg_parameters import *
 from episodic_buffer import EpisodicBuffer
@@ -10,7 +9,7 @@ from mapf_gym import MAPFEnv
 from model import Model
 from util import reset_env, make_gif, set_global_seeds
 
-NUM_TIMES = 100
+NUM_TIMES = 1
 CASE = [[8, 10, 0], [8, 10, 0.15], [8, 10, 0.3], [16, 20, 0.0], [16, 20, 0.15], [16, 20, 0.3], [32, 30, 0.0],
         [32, 30, 0.15], [32, 30, 0.3], [64, 40, 0.0], [64, 40, 0.15], [64, 40, 0.3], [128, 40, 0.0],
         [128, 40, 0.15], [128, 40, 0.3]]
@@ -86,19 +85,7 @@ if __name__ == "__main__":
     path_checkpoint = model_path + "/net_checkpoint.pkl"
     model = Model(0, torch.device('cpu'))
     model.network.load_state_dict(torch.load(path_checkpoint)['model'])
-
-    # recording
-    wandb_id = wandb.util.generate_id()
-    wandb.init(project='MAPF_evaluation',
-               name='evaluation_global_SCRIMP',
-               entity=RecordingParameters.ENTITY,
-               notes=RecordingParameters.EXPERIMENT_NOTE,
-               config=all_args,
-               id=wandb_id,
-               resume='allow')
-    print('id is:{}'.format(wandb_id))
-    print('Launching wandb...\n')
-    save_gif = True
+    save_gif = False
 
     # start evaluation
     for k in CASE:
@@ -140,4 +127,4 @@ if __name__ == "__main__":
         print('-----------------------------------------------------------------------------------------------')
 
     print('finished')
-    wandb.finish()
+

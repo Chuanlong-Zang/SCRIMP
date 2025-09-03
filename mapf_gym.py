@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from gym import spaces
-from gym.envs.classic_control import rendering
+# from gym.envs.classic_control import rendering
 from matplotlib.colors import hsv_to_rgb
 
 from alg_parameters import *
@@ -654,7 +654,7 @@ class State(object):
                     if right not in open_list:
                         open_list.append(right)
 
-        self.heuri_map = np.zeros((self.num_agents, 4, *self.state.shape), dtype=np.bool)
+        self.heuri_map = np.zeros((self.num_agents, 4, *self.state.shape), dtype=bool)
 
         for x in range(self.state.shape[0]):
             for y in range(self.state.shape[1]):
@@ -773,10 +773,16 @@ class MAPFEnv(gym.Env):
             regions_dict[(x0, y0)] = visited
             return visited
 
-        prob = np.random.triangular(self.PROB[0], .33 * self.PROB[0] + .66 * self.PROB[1],
-                                    self.PROB[1])  # sample a value from triangular distribution
-        size = np.random.choice([self.SIZE[0], self.SIZE[0] * .5 + self.SIZE[1] * .5, self.SIZE[1]],
-                                p=[.5, .25, .25])  # sample a value according to the given probability
+        if type(self.PROB) == int or type(self.PROB) == float:
+            prob = self.PROB
+        else:
+            prob = np.random.triangular(self.PROB[0], .33 * self.PROB[0] + .66 * self.PROB[1],
+                                        self.PROB[1])  # sample a value from triangular distribution
+        if type(self.SIZE) == int:
+            size = self.SIZE
+        else:
+            size = np.random.choice([self.SIZE[0], self.SIZE[0] * .5 + self.SIZE[1] * .5, self.SIZE[1]],
+                                    p=[.5, .25, .25])  # sample a value according to the given probability
         # prob = self.PROB
         # size = self.SIZE  # fixed world0 size and obstacle density for evaluation
         world = -(np.random.rand(int(size), int(size)) < prob).astype(int)  # -1 obstacle,0 nothing, >0 agent id
@@ -1005,90 +1011,90 @@ class MAPFEnv(gym.Env):
         return obs, vector, rewards, done, next_valid_actions, on_goals, blockings, valid_actions, num_blockings, \
             leave_goals, num_on_goal, self.max_on_goal, num_collide, action_status, modify_actions
 
-    def create_rectangle(self, x, y, width, height, fill, permanent=False):
-        """draw a rectangle to represent an agent"""
-        ps = [(x, y), ((x + width), y), ((x + width), (y + height)), (x, (y + height))]
-        rect = rendering.FilledPolygon(ps)
-        rect.set_color(fill[0], fill[1], fill[2])
-        rect.add_attr(rendering.Transform())
-        if permanent:
-            self.viewer.add_geom(rect)
-        else:
-            self.viewer.add_onetime(rect)
+    # def create_rectangle(self, x, y, width, height, fill, permanent=False):
+    #     """draw a rectangle to represent an agent"""
+    #     ps = [(x, y), ((x + width), y), ((x + width), (y + height)), (x, (y + height))]
+    #     rect = rendering.FilledPolygon(ps)
+    #     rect.set_color(fill[0], fill[1], fill[2])
+    #     rect.add_attr(rendering.Transform())
+    #     if permanent:
+    #         self.viewer.add_geom(rect)
+    #     else:
+    #         self.viewer.add_onetime(rect)
 
-    def create_circle(self, x, y, diameter, size, fill, resolution=20):
-        """draw a circle to represent a goal"""
-        c = (x + size / 2, y + size / 2)
-        dr = math.pi * 2 / resolution
-        ps = []
-        for i in range(resolution):
-            x = c[0] + math.cos(i * dr) * diameter / 2
-            y = c[1] + math.sin(i * dr) * diameter / 2
-            ps.append((x, y))
-        circ = rendering.FilledPolygon(ps)
-        circ.set_color(fill[0], fill[1], fill[2])
-        circ.add_attr(rendering.Transform())
-        self.viewer.add_onetime(circ)
+    # def create_circle(self, x, y, diameter, size, fill, resolution=20):
+    #     """draw a circle to represent a goal"""
+    #     c = (x + size / 2, y + size / 2)
+    #     dr = math.pi * 2 / resolution
+    #     ps = []
+    #     for i in range(resolution):
+    #         x = c[0] + math.cos(i * dr) * diameter / 2
+    #         y = c[1] + math.sin(i * dr) * diameter / 2
+    #         ps.append((x, y))
+    #     circ = rendering.FilledPolygon(ps)
+    #     circ.set_color(fill[0], fill[1], fill[2])
+    #     circ.add_attr(rendering.Transform())
+    #     self.viewer.add_onetime(circ)
 
     def init_colors(self):
         """the colors of agents and goals"""
         c = {a + 1: hsv_to_rgb(np.array([a / float(self.num_agents), 1, 1])) for a in range(self.num_agents)}
         return c
 
-    def _render(self, mode='human', close=False, screen_width=800, screen_height=800, action_probs=None):
-        if close:
-            return
-        # values is an optional parameter which provides a visualization for the value of each agent per step
-        size = screen_width / max(self.world.state.shape[0], self.world.state.shape[1])
-        colors = self.init_colors()
-        if self.viewer is None:
-            self.viewer = rendering.Viewer(screen_width, screen_height)
-            self.reset_renderer = True
-        if self.reset_renderer:
-            self.create_rectangle(0, 0, screen_width, screen_height, (.6, .6, .6), permanent=True)
-            for i in range(self.world.state.shape[0]):
-                start = 0
-                end = 1
-                scanning = False
-                write = False
-                for j in range(self.world.state.shape[1]):
-                    if self.world.state[i, j] != -1 and not scanning:  # free
-                        start = j
-                        scanning = True
-                    if (j == self.world.state.shape[1] - 1 or self.world.state[i, j] == -1) and scanning:
-                        end = j + 1 if j == self.world.state.shape[1] - 1 else j
-                        scanning = False
-                        write = True
-                    if write:
-                        x = i * size
-                        y = start * size
-                        self.create_rectangle(x, y, size, size * (end - start), (1, 1, 1), permanent=True)
-                        write = False
-        for agent in range(1, self.num_agents + 1):
-            i, j = self.world.get_pos(agent)
-            x = i * size
-            y = j * size
-            color = colors[self.world.state[i, j]]
-            self.create_rectangle(x, y, size, size, color)
-            i, j = self.world.get_goal(agent)
-            x = i * size
-            y = j * size
-            color = colors[self.world.goals[i, j]]
-            self.create_circle(x, y, size, size, color)
-            if self.world.get_goal(agent) == self.world.get_pos(agent):
-                color = (0, 0, 0)
-                self.create_circle(x, y, size, size, color)
-        if action_probs is not None:
-            for agent in range(1, self.num_agents + 1):
-                # take the a_dist from the given data and draw it on the frame
-                a_dist = action_probs[agent - 1]
-                if a_dist is not None:
-                    for m in range(EnvParameters.N_ACTIONS):
-                        dx, dy = self.world.get_dir(m)
-                        x = (self.world.get_pos(agent)[0] + dx) * size
-                        y = (self.world.get_pos(agent)[1] + dy) * size
-                        s = a_dist[m] * size
-                        self.create_circle(x, y, s, size, (0, 0, 0))
-        self.reset_renderer = False
-        result = self.viewer.render(return_rgb_array=mode == 'rgb_array')
-        return result
+    # def _render(self, mode='human', close=False, screen_width=800, screen_height=800, action_probs=None):
+    #     if close:
+    #         return
+    #     # values is an optional parameter which provides a visualization for the value of each agent per step
+    #     size = screen_width / max(self.world.state.shape[0], self.world.state.shape[1])
+    #     colors = self.init_colors()
+    #     if self.viewer is None:
+    #         self.viewer = rendering.Viewer(screen_width, screen_height)
+    #         self.reset_renderer = True
+    #     if self.reset_renderer:
+    #         self.create_rectangle(0, 0, screen_width, screen_height, (.6, .6, .6), permanent=True)
+    #         for i in range(self.world.state.shape[0]):
+    #             start = 0
+    #             end = 1
+    #             scanning = False
+    #             write = False
+    #             for j in range(self.world.state.shape[1]):
+    #                 if self.world.state[i, j] != -1 and not scanning:  # free
+    #                     start = j
+    #                     scanning = True
+    #                 if (j == self.world.state.shape[1] - 1 or self.world.state[i, j] == -1) and scanning:
+    #                     end = j + 1 if j == self.world.state.shape[1] - 1 else j
+    #                     scanning = False
+    #                     write = True
+    #                 if write:
+    #                     x = i * size
+    #                     y = start * size
+    #                     self.create_rectangle(x, y, size, size * (end - start), (1, 1, 1), permanent=True)
+    #                     write = False
+    #     for agent in range(1, self.num_agents + 1):
+    #         i, j = self.world.get_pos(agent)
+    #         x = i * size
+    #         y = j * size
+    #         color = colors[self.world.state[i, j]]
+    #         self.create_rectangle(x, y, size, size, color)
+    #         i, j = self.world.get_goal(agent)
+    #         x = i * size
+    #         y = j * size
+    #         color = colors[self.world.goals[i, j]]
+    #         self.create_circle(x, y, size, size, color)
+    #         if self.world.get_goal(agent) == self.world.get_pos(agent):
+    #             color = (0, 0, 0)
+    #             self.create_circle(x, y, size, size, color)
+    #     if action_probs is not None:
+    #         for agent in range(1, self.num_agents + 1):
+    #             # take the a_dist from the given data and draw it on the frame
+    #             a_dist = action_probs[agent - 1]
+    #             if a_dist is not None:
+    #                 for m in range(EnvParameters.N_ACTIONS):
+    #                     dx, dy = self.world.get_dir(m)
+    #                     x = (self.world.get_pos(agent)[0] + dx) * size
+    #                     y = (self.world.get_pos(agent)[1] + dy) * size
+    #                     s = a_dist[m] * size
+    #                     self.create_circle(x, y, s, size, (0, 0, 0))
+    #     self.reset_renderer = False
+    #     result = self.viewer.render(return_rgb_array=mode == 'rgb_array')
+    #     return result
